@@ -17,7 +17,6 @@ A powerful, free web application for generating multiple QR codes from spreadshe
 - [Installation](#installation)
   - [Local Development](#local-development)
   - [Docker Deployment](#docker-deployment)
-  - [Heroku Deployment](#heroku-deployment)
 - [Usage Guide](#usage-guide)
 - [Applications](#applications)
 - [Advanced Configuration](#advanced-configuration)
@@ -33,7 +32,7 @@ A powerful, free web application for generating multiple QR codes from spreadshe
 
 Bulk QR Code Generator helps you create multiple QR codes from spreadsheet data with just a few clicks. Whether you need QR codes for inventory management, event tickets, product labeling, or marketing campaigns, this tool makes the process simple and efficient.
 
-**Live Demo:** [https://bulk-qr-generator.herokuapp.com](https://bulk-qr-generator.herokuapp.com) (Coming Soon)
+**Live Demo:** [https://bulk-qr-generator.onrender.com](https://bulk-qr-generator.onrender.com) (Coming Soon)
 
 ## Key Features
 
@@ -111,19 +110,6 @@ docker build -t bulk-qr-generator .
 
 # Run the container
 docker run -p 5000:5000 bulk-qr-generator
-```
-
-### Heroku Deployment
-
-```bash
-# Login to Heroku
-heroku login
-
-# Create a new Heroku app
-heroku create your-app-name
-
-# Deploy to Heroku
-git push heroku main
 ```
 
 ## Usage Guide
