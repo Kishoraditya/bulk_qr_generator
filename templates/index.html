@@ -3,135 +3,630 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Generator</title>
+    <title>QR Code Generator - Create Custom QR Codes for Business and Personal Use</title>
+    <meta name="description" content="Free online QR code generator. Create QR codes from Excel/CSV data, URLs, vCards, and images. Customize size, style, and download as PDF or individual files.">
+    <meta name="keywords" content="QR code generator, Excel to QR, bulk QR codes, custom QR codes, vCard QR, URL QR, image QR">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourqrcodegenerator.com/">
+    <meta property="og:title" content="QR Code Generator - Create Custom QR Codes">
+    <meta property="og:description" content="Free online QR code generator for Excel data, URLs, vCards, and more.">
+    <meta property="og:image" content="https://yourqrcodegenerator.com/static/img/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yourqrcodegenerator.com/">
+    <meta property="twitter:title" content="QR Code Generator - Create Custom QR Codes">
+    <meta property="twitter:description" content="Free online QR code generator for Excel data, URLs, vCards, and more.">
+    <meta property="twitter:image" content="https://yourqrcodegenerator.com/static/img/twitter-image.jpg">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="mb-0">QR Code Generator</h2>
-                    </div>
-                    <div class="card-body">
-                        <form id="qrForm" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label for="file" class="form-label">Upload Excel or CSV File</label>
-                                <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls,.csv" required>
-                                <div class="form-text">Supported formats: .xlsx, .xls, .csv</div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="column" class="form-label">Column Index (0-based)</label>
-                                    <input type="number" class="form-control" id="column" name="column" value="0" min="0" required>
-                                    <div class="form-text">First column is 0, second is 1, etc.</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="max_rows" class="form-label">Max Rows (Optional)</label>
-                                    <input type="number" class="form-control" id="max_rows" name="max_rows" min="1">
-                                    <div class="form-text">Leave empty to process all non-blank rows</div>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label for="qr_size" class="form-label">QR Code Size (px)</label>
-                                    <input type="number" class="form-control" id="qr_size" name="qr_size" value="50" min="50" required>
-                                    <div class="form-text">Minimum 50px recommended</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="page_margin" class="form-label">Page Margin (pt)</label>
-                                    <input type="number" class="form-control" id="page_margin" name="page_margin" value="5" min="0" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="qr_margin" class="form-label">QR Margin/Border (pt)</label>
-                                    <input type="number" class="form-control" id="qr_margin" name="qr_margin" value="0" min="0" required>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label for="error_level" class="form-label">Error Correction</label>
-                                    <select class="form-select" id="error_level" name="error_level">
-                                        <option value="l" selected>Low (7%)</option>
-                                        <option value="m">Medium (15%)</option>
-                                        <option value="q">Quartile (25%)</option>
-                                        <option value="h">High (30%)</option>
-                                    </select>
-                                    <div class="form-text">Higher = more robust, but larger codes</div>
-                                </div>
-                                <div class="col-md-8">
-                                    <label class="form-label">Download Options</label>
-                                    <select class="form-select" id="download_type" name="download_type">
-                                        <option value="pdf" selected>PDF Document</option>
-                                        <option value="zip">Individual PNGs (ZIP)</option>
-                                        <option value="both">Both PDF and ZIP</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="include_text" name="include_text" value="true">
-                                        <label class="form-check-label" for="include_text">
-                                            Include text below QR codes
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="include_page_numbers" name="include_page_numbers" value="true">
-                                        <label class="form-check-label" for="include_page_numbers">
-                                            Include page numbers
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary" id="generateBtn">Generate QR Codes</button>
-                            </div>
-                        </form>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="QR Code Generator" height="30">
+                QR Code Generator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#excel">Excel/CSV</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#url">URL</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#vcard">vCard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#image">Image QR</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="bg-light py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">Create Custom QR Codes</h1>
+                    <p class="lead">Generate QR codes from Excel/CSV data, URLs, contact information, or blend with images. Customize size, style, and download in your preferred format.</p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                        <a href="#excel" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                        <a href="#about" class="btn btn-outline-secondary btn-lg px-4">Learn More</a>
                     </div>
                 </div>
-                
-                <!-- Results Card (initially hidden) -->
-                <div class="card shadow mt-4" id="resultsCard" style="display: none;">
-                    <div class="card-header bg-success text-white">
-                        <h3 class="mb-0">QR Codes Generated</h3>
-                    </div>
-                    <div class="card-body">
-                        <div id="resultStats" class="mb-3"></div>
-                        <div id="downloadLinks" class="d-grid gap-2"></div>
-                    </div>
-                </div>
-                
-                <!-- Error Card (initially hidden) -->
-                <div class="card shadow mt-4 bg-light" id="errorCard" style="display: none;">
-                    <div class="card-header bg-danger text-white">
-                        <h3 class="mb-0">Error</h3>
-                    </div>
-                    <div class="card-body">
-                        <p id="errorMessage"></p>
-                    </div>
-                </div>
-                
-                <!-- Loading Spinner (initially hidden) -->
-                <div class="text-center mt-4" id="loadingSpinner" style="display: none;">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Generating QR codes, please wait...</p>
+                <div class="col-lg-6">
+                    <img src="{{ url_for('static', filename='img/hero-image.png') }}" class="img-fluid" alt="QR Code Examples">
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-4" id="qrTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel-content" type="button" role="tab">
+                    <i class="bi bi-file-earmark-excel"></i> Excel/CSV
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-content" type="button" role="tab">
+                    <i class="bi bi-link-45deg"></i> URL
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="vcard-tab" data-bs-toggle="tab" data-bs-target="#vcard-content" type="button" role="tab">
+                    <i class="bi bi-person-vcard"></i> vCard
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="image-tab" data-bs-toggle="tab" data-bs-target="#image-content" type="button" role="tab">
+                    <i class="bi bi-image"></i> Image QR
+                </button>
+            </li>
+        </ul>
+        
+        <!-- Tab Content -->
+        <div class="tab-content" id="qrTabsContent">
+            <!-- Excel/CSV Tab -->
+            <div class="tab-pane fade show active" id="excel-content" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white">
+                                <h2 class="mb-0 fs-4" id="excel">Generate QR Codes from Excel/CSV</h2>
+                            </div>
+                            <div class="card-body">
+                                <form id="excelForm" enctype="multipart/form-data">
+                                    <input type="hidden" name="generation_type" value="excel">
+                                    
+                                    <div class="mb-3">
+                                        <label for="file" class="form-label">Upload Excel or CSV File</label>
+                                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls,.csv" required>
+                                        <div class="form-text">Supported formats: .xlsx, .xls, .csv</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="column" class="form-label">Column Index (0-based)</label>
+                                            <input type="number" class="form-control" id="column" name="column" value="0" min="0" required>
+                                            <div class="form-text">First column is 0, second is 1, etc.</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="max_rows" class="form-label">Max Rows (Optional)</label>
+                                            <input type="number" class="form-control" id="max_rows" name="max_rows" min="1">
+                                            <div class="form-text">Leave empty to process all non-blank rows</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="qr_size" class="form-label">QR Code Size (px)</label>
+                                            <input type="number" class="form-control" id="qr_size" name="qr_size" value="50" min="50" required>
+                                            <div class="form-text">Minimum 50px recommended</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="page_margin" class="form-label">Page Margin (pt)</label>
+                                            <input type="number" class="form-control" id="page_margin" name="page_margin" value="5" min="0" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="qr_margin" class="form-label">QR Margin/Border (pt)</label>
+                                            <input type="number" class="form-control" id="qr_margin" name="qr_margin" value="0" min="0" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="error_level" class="form-label">Error Correction</label>
+                                            <select class="form-select" id="error_level" name="error_level">
+                                                <option value="l" selected>Low (7%)</option>
+                                                <option value="m">Medium (15%)</option>
+                                                <option value="q">Quartile (25%)</option>
+                                                <option value="h">High (30%)</option>
+                                            </select>
+                                            <div class="form-text">Higher = more robust, but larger codes</div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label class="form-label">Download Options</label>
+                                            <select class="form-select" id="download_type" name="download_type">
+                                                <option value="pdf" selected>PDF Document</option>
+                                                <option value="zip">Individual PNGs (ZIP)</option>
+                                                <option value="both">Both PDF and ZIP</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="include_text" name="include_text" value="true">
+                                                <label class="form-check-label" for="include_text">
+                                                    Include text below QR codes
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="include_page_numbers" name="include_page_numbers" value="true">
+                                                <label class="form-check-label" for="include_page_numbers">
+                                                    Include page numbers
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary" id="excelGenerateBtn">Generate QR Codes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card shadow">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="mb-0 fs-5">Excel/CSV Tips</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        Perfect for generating multiple QR codes at once
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        Ideal for product codes, inventory, event tickets
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="bi bi-info-circle-fill text-primary"></i>
+                                        For best results, keep data under 100 characters per cell
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="bi bi-info-circle-fill text-primary"></i>
+                                        Higher error correction recommended for printed QR codes
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- URL Tab -->
+            <div class="tab-pane fade" id="url-content" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white">
+                                <h2 class="mb-0 fs-4" id="url">Generate URL QR Code</h2>
+                            </div>
+                            <div class="card-body">
+                                <form id="urlForm" enctype="multipart/form-data">
+                                    <input type="hidden" name="generation_type" value="url">
+                                    
+                                    <div class="mb-3">
+                                        <label for="url" class="form-label">Website URL</label>
+                                        <input type="text" class="form-control" id="url" name="url" placeholder="https://example.com" required>
+                                        <div class="form-text">Enter the full URL including http:// or https://</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="url_qr_size" class="form-label">QR Code Size (px)</label>
+                                            <input type="number" class="form-control" id="url_qr_size" name="qr_size" value="300" min="100" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="url_error_level" class="form-label">Error Correction</label>
+                                            <select class="form-select" id="url_error_level" name="error_level">
+                                                <option value="l">Low (7%)</option>
+                                                <option value="m" selected>Medium (15%)</option>
+                                                <option value="q">Quartile (25%)</option>
+                                                <option value="h">High (30%)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="qr_style" class="form-label">QR Code Style</label>
+                                        <select class="form-select" id="qr_style" name="qr_style">
+                                            <option value="standard" selected>Standard</option>
+                                            <option value="rounded">Rounded</option>
+                                            <option value="gradient">Gradient</option>
+                                            <option value="custom">Custom Colors</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary" id="urlGenerateBtn">Generate QR Code</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card shadow">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="mb-0 fs-5">URL QR Preview</h3>
+                            </div>
+                            <div class="card-body text-center">
+                                <div id="urlPreview" class="py-3">
+                                    <img src="{{ url_for('static', filename='img/url-qr-placeholder.png') }}" class="img-fluid" alt="URL QR Code Preview">
+                                </div>
+                                <div id="urlDownload" style="display: none;">
+                                    <a href="#" class="btn btn-success" id="urlDownloadBtn">
+                                        <i class="bi bi-download"></i> Download QR Code
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- vCard Tab -->
+            <div class="tab-pane fade" id="vcard-content" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white">
+                                <h2 class="mb-0 fs-4" id="vcard">Generate vCard QR Code</h2>
+                            </div>
+                            <div class="card-body">
+                                <form id="vcardForm" enctype="multipart/form-data">
+                                    <input type="hidden" name="generation_type" value="vcard">
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="name" class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" id="name" name="name" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email" name="email">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="phone" class="form-label">Phone</label>
+                                            <input type="tel" class="form-control" id="phone" name="phone">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="company" class="form-label">Company</label>
+                                            <input type="text" class="form-control" id="company" name="company">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="title" class="form-label">Job Title</label>
+                                            <input type="text" class="form-control" id="title" name="title">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="website" class="form-label">Website</label>
+                                            <input type="text" class="form-control" id="website" name="website" placeholder="example.com">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="address" class="form-label">Address</label>
+                                        <input type="text" class="form-control" id="address" name="address">
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="vcard_qr_size" class="form-label">QR Code Size (px)</label>
+                                            <input type="number" class="form-control" id="vcard_qr_size" name="qr_size" value="300" min="100" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="vcard_error_level" class="form-label">Error Correction</label>
+                                            <select class="form-select" id="vcard_error_level" name="error_level">
+                                                <option value="l">Low (7%)</option>
+                                                <option value="m" selected>Medium (15%)</option>
+                                                <option value="q">Quartile (25%)</option>
+                                                <option value="h">High (30%)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary" id="vcardGenerateBtn">Generate vCard QR Code</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card shadow">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="mb-0 fs-5">vCard QR Preview</h3>
+                            </div>
+                            <div class="card-body text-center">
+                                <div id="vcardPreview" class="py-3">
+                                    <img src="{{ url_for('static', filename='img/vcard-qr-placeholder.png') }}" class="img-fluid" alt="vCard QR Code Preview">
+                                </div>
+                                <div id="vcardDownload" style="display: none;">
+                                    <a href="#" class="btn btn-success" id="vcardDownloadBtn">
+                                        <i class="bi bi-download"></i> Download QR Code
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Image QR Tab -->
+            <div class="tab-pane fade" id="image-content" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white">
+                                <h2 class="mb-0 fs-4" id="image">Generate Image QR Code</h2>
+                            </div>
+                            <div class="card-body">
+                                <form id="imageForm" enctype="multipart/form-data">
+                                    <input type="hidden" name="generation_type" value="image">
+                                    
+                                    <div class="mb-3">
+                                        <label for="qr_data" class="form-label">QR Code Content</label>
+                                        <input type="text" class="form-control" id="qr_data" name="qr_data" required>
+                                        <div class="form-text">Text or URL to encode in the QR code</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="image_file" class="form-label">Upload Image</label>
+                                        <input type="file" class="form-control" id="image_file" name="file" accept=".jpg,.jpeg,.png" required>
+                                        <div class="form-text">This image will be embedded in the center of the QR code</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="image_qr_size" class="form-label">QR Code Size (px)</label>
+                                            <input type="number" class="form-control" id="image_qr_size" name="qr_size" value="300" min="150" required>
+                                            <div class="form-text">Minimum 150px recommended for image QR codes</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="image_error_level" class="form-label">Error Correction</label>
+                                            <select class="form-select" id="image_error_level" name="error_level">
+                                                <option value="q">Quartile (25%)</option>
+                                                <option value="h" selected>High (30%)</option>
+                                            </select>
+                                            <div class="form-text">High error correction recommended for image QR codes</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary" id="imageGenerateBtn">Generate Image QR Code</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card shadow">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="mb-0 fs-5">Image QR Preview</h3>
+                            </div>
+                            <div class="card-body text-center">
+                                <div id="imagePreview" class="py-3">
+                                    <img src="{{ url_for('static', filename='img/image-qr-placeholder.png') }}" class="img-fluid" alt="Image QR Code Preview">
+                                </div>
+                                <div id="imageDownload" style="display: none;">
+                                    <a href="#" class="btn btn-success" id="imageDownloadBtn">
+                                        <i class="bi bi-download"></i> Download QR Code
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="row mt-4" id="resultsSection" style="display: none;">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="mb-0 fs-4">QR Codes Generated Successfully</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultsMessage" class="alert alert-success"></div>
+                        <div id="downloadLinks" class="d-flex justify-content-center gap-3"></div>
+                        <div id="statsInfo" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card shadow" id="about">
+                    <div class="card-header bg-dark text-white">
+                        <h2 class="mb-0 fs-4">About QR Code Generator</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h3 class="fs-5">What is a QR Code?</h3>
+                                <p>QR (Quick Response) codes are two-dimensional barcodes that can be scanned using smartphone cameras to quickly access information, websites, or perform actions.</p>
+                                
+                                <h3 class="fs-5 mt-4">Features of Our QR Code Generator</h3>
+                                <ul>
+                                    <li><strong>Bulk Generation:</strong> Create multiple QR codes at once from Excel or CSV data</li>
+                                    <li><strong>Custom Styling:</strong> Choose from various styles including standard, rounded, and gradient QR codes</li>
+                                    <li><strong>vCard Generation:</strong> Create QR codes that add contact information directly to a phone</li>
+                                    <li><strong>Image Embedding:</strong> Combine QR codes with logos or images for branded codes</li>
+                                    <li><strong>Multiple Formats:</strong> Download as individual PNG files or as a formatted PDF</li>
+                                </ul>
+                                
+                                <h3 class="fs-5 mt-4">Use Cases</h3>
+                                <p>QR codes are versatile and can be used for:</p>
+                                <ul>
+                                    <li>Business cards and contact information</li>
+                                    <li>Product packaging and inventory management</li>
+                                    <li>Event tickets and check-ins</li>
+                                    <li>Restaurant menus and ordering systems</li>
+                                    <li>Marketing campaigns and promotional materials</li>
+                                    <li>Educational resources and interactive learning</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h4 class="fs-5">QR Code Tips</h4>
+                                        <ul class="list-unstyled">
+                                            <li><i class="bi bi-check-circle text-success"></i> Test your QR codes before distributing</li>
+                                            <li><i class="bi bi-check-circle text-success"></i> Use higher error correction for printed codes</li>
+                                            <li><i class="bi bi-check-circle text-success"></i> Ensure adequate contrast for better scanning</li>
+                                            <li><i class="bi bi-check-circle text-success"></i> Include a call-to-action near your QR code</li>
+                                            <li><i class="bi bi-check-circle text-success"></i> Keep URLs short for simpler QR patterns</li>
+                                        </ul>
+                                        
+                                        <div class="alert alert-info mt-3">
+                                            <h5 class="fs-6"><i class="bi bi-info-circle"></i> Did You Know?</h5>
+                                            <p class="small mb-0">QR codes can store up to 4,296 alphanumeric characters or 7,089 numeric digits!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- AdSense Placeholder -->
+                                <div class="card mt-3">
+                                    <div class="card-body text-center">
+                                        <p class="text-muted small">Advertisement</p>
+                                        <!-- AdSense code would go here -->
+                                        <div style="background-color: #f8f9fa; height: 250px; display: flex; align-items: center; justify-content: center;">
+                                            <p class="text-muted">Ad Space</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>QR Code Generator</h5>
+                    <p class="small">A free tool to create custom QR codes for business and personal use.</p>
+                    <p class="small">© 2023 QR Code Generator. All rights reserved.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#excel" class="text-white">Excel/CSV QR Generator</a></li>
+                        <li><a href="#url" class="text-white">URL QR Generator</a></li>
+                        <li><a href="#vcard" class="text-white">vCard QR Generator</a></li>
+                        <li><a href="#image" class="text-white">Image QR Generator</a></li>
+                        <li><a href="#about" class="text-white">About QR Codes</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Resources</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-white">Terms of Service</a></li>
+                        <li><a href="#" class="text-white">Contact Us</a></li>
+                        <li><a href="#" class="text-white">FAQ</a></li>
+                        <li><a href="#" class="text-white">Blog</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" style="display: none;">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-light mt-2">Generating QR Codes...</p>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Error</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="errorModalBody">
+                    An error occurred while generating QR codes.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

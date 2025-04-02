@@ -1,104 +1,378 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const qrForm = document.getElementById('qrForm');
-    const generateBtn = document.getElementById('generateBtn');
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const resultsCard = document.getElementById('resultsCard');
-    const errorCard = document.getElementById('errorCard');
-    const errorMessage = document.getElementById('errorMessage');
-    const resultStats = document.getElementById('resultStats');
-    const downloadLinks = document.getElementById('downloadLinks');
+    // Form submission handlers
+    setupExcelForm();
+    setupUrlForm();
+    setupVcardForm();
+    setupImageForm();
     
-    qrForm.addEventListener('submit', function(e) {
+    // Tab change handler to reset forms
+    const tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(event) {
+            resetForms();
+            hideResultsSection();
+        });
+    });
+    
+    // Handle hash in URL for direct tab access
+    const hash = window.location.hash;
+    if (hash) {
+        const tabId = hash.replace('#', '') + '-tab';
+        const tab = document.getElementById(tabId);
+        if (tab) {
+            const bsTab = new bootstrap.Tab(tab);
+            bsTab.show();
+        }
+    }
+});
+
+function setupExcelForm() {
+    const form = document.getElementById('excelForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Hide previous results/errors
-        resultsCard.style.display = 'none';
-        errorCard.style.display = 'none';
+        // Validate form
+        const fileInput = document.getElementById('file');
+        if (!fileInput.files.length) {
+            showError('Please select a file to upload.');
+            return;
+        }
         
-        // Show loading spinner
-        loadingSpinner.style.display = 'block';
-        generateBtn.disabled = true;
+        // Show loading overlay
+        showLoading();
         
-        // Get form data
-        const formData = new FormData(qrForm);
+        // Submit form data
+        const formData = new FormData(form);
         
-        // Handle checkbox values
-        formData.set('include_text', document.getElementById('include_text').checked ? 'true' : 'false');
-        formData.set('include_page_numbers', document.getElementById('include_page_numbers').checked ? 'true' : 'false');
-        
-        // Send request to server
         fetch('/generate', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
-            // Hide loading spinner
-            loadingSpinner.style.display = 'none';
-            generateBtn.disabled = false;
+            hideLoading();
             
             if (data.error) {
-                // Show error
-                errorMessage.textContent = data.error;
-                errorCard.style.display = 'block';
-            } else {
-                // Show success and download links
-                displayResults(data);
-                resultsCard.style.display = 'block';
-                
-                // Scroll to results
-                resultsCard.scrollIntoView({ behavior: 'smooth' });
+                showError(data.error);
+                return;
             }
+            
+            // Prepare download links based on download type
+            const downloadLinks = [];
+            
+            if (data.pdf_url) {
+                downloadLinks.push({
+                    url: data.pdf_url,
+                    label: 'Download PDF'
+                });
+            }
+            
+            if (data.zip_url) {
+                downloadLinks.push({
+                    url: data.zip_url,
+                    label: 'Download ZIP'
+                });
+            }
+            
+            // Show results with download links
+            showResults({
+                message: data.message,
+                download_links: downloadLinks,
+                stats: data.stats
+            });
         })
         .catch(error => {
-            // Hide loading spinner
-            loadingSpinner.style.display = 'none';
-            generateBtn.disabled = false;
-            
-            // Show error
-            errorMessage.textContent = 'An error occurred while processing your request. Please try again.';
-            errorCard.style.display = 'block';
+            hideLoading();
+            showError('An error occurred while generating QR codes. Please try again.');
             console.error('Error:', error);
         });
     });
+}
+
+
+function setupUrlForm() {
+    const form = document.getElementById('urlForm');
+    if (!form) return;
     
-    function displayResults(data) {
-        // Display statistics
-        let statsHtml = '<div class="alert alert-info">';
-        statsHtml += `<p class="stats-item"><strong>Total QR Codes:</strong> ${data.stats.total_qr_codes}</p>`;
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
         
-        if (data.stats.qr_per_page) {
-            statsHtml += `<p class="stats-item"><strong>QR Codes per Page:</strong> ${data.stats.qr_per_page}</p>`;
-            statsHtml += `<p class="stats-item"><strong>Total Pages:</strong> ${data.stats.total_pages}</p>`;
+        // Validate form
+        const urlInput = document.getElementById('url');
+        if (!urlInput.value.trim()) {
+            showError('Please enter a URL.');
+            return;
         }
         
-        statsHtml += '</div>';
-        resultStats.innerHTML = statsHtml;
+        // Show loading overlay
+        showLoading();
         
-        // Display download links
-        let linksHtml = '';
+        // Submit form data
+        const formData = new FormData(form);
         
-        if (data.download_urls.pdf) {
-            linksHtml += `<a href="${data.download_urls.pdf}" class="btn btn-success download-btn">
-                            <i class="bi bi-file-pdf"></i> Download PDF
-                          </a>`;
+        fetch('/generate', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+            
+            // Update preview
+            const previewDiv = document.getElementById('urlPreview');
+            previewDiv.innerHTML = `<img src="${data.preview}" class="img-fluid" alt="URL QR Code">`;
+            
+            // Show download button
+            const downloadDiv = document.getElementById('urlDownload');
+            downloadDiv.style.display = 'block';
+            
+            const downloadBtn = document.getElementById('urlDownloadBtn');
+            downloadBtn.href = data.download_url;
+            // Show success message
+            showResults({
+                message: data.message,
+                download_links: [
+                    { url: data.download_url, label: 'Download QR Code' }
+                ]
+            });
+        })
+        .catch(error => {
+            hideLoading();
+            showError('An error occurred while generating the QR code. Please try again.');
+            console.error('Error:', error);
+        });
+    });
+}
+
+function setupVcardForm() {
+    const form = document.getElementById('vcardForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate form - at least one of name, email, or phone should be provided
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        
+        if (!nameInput.value.trim() && !emailInput.value.trim() && !phoneInput.value.trim()) {
+            showError('Please provide at least a name, email, or phone number.');
+            return;
         }
         
-        if (data.download_urls.zip) {
-            linksHtml += `<a href="${data.download_urls.zip}" class="btn btn-primary download-btn">
-                            <i class="bi bi-file-zip"></i> Download ZIP (Individual QR Codes)
-                          </a>`;
+        // Show loading overlay
+        showLoading();
+        
+        // Submit form data
+        const formData = new FormData(form);
+        
+        fetch('/generate', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+            
+            // Update preview
+            const previewDiv = document.getElementById('vcardPreview');
+            previewDiv.innerHTML = `<img src="${data.preview}" class="img-fluid" alt="vCard QR Code">`;
+            
+            // Show download button
+            const downloadDiv = document.getElementById('vcardDownload');
+            downloadDiv.style.display = 'block';
+            
+            const downloadBtn = document.getElementById('vcardDownloadBtn');
+            downloadBtn.href = data.download_url;
+            
+            // Show success message
+            showResults({
+                message: data.message,
+                download_links: [
+                    { url: data.download_url, label: 'Download vCard QR Code' }
+                ]
+            });
+        })
+        .catch(error => {
+            hideLoading();
+            showError('An error occurred while generating the vCard QR code. Please try again.');
+            console.error('Error:', error);
+        });
+    });
+}
+
+function setupImageForm() {
+    const form = document.getElementById('imageForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        const dataInput = document.getElementById('qr_data');
+        const fileInput = document.getElementById('image_file');
+        
+        if (!dataInput.value.trim()) {
+            showError('Please enter content for the QR code.');
+            return;
         }
         
-        downloadLinks.innerHTML = linksHtml;
+        if (!fileInput.files.length) {
+            showError('Please select an image to upload.');
+            return;
+        }
+        
+        // Show loading overlay
+        showLoading();
+        
+        // Submit form data
+        const formData = new FormData(form);
+        
+        fetch('/generate', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+            
+            // Update preview
+            const previewDiv = document.getElementById('imagePreview');
+            previewDiv.innerHTML = `<img src="${data.preview}" class="img-fluid" alt="Image QR Code">`;
+            
+            // Show download button
+            const downloadDiv = document.getElementById('imageDownload');
+            downloadDiv.style.display = 'block';
+            
+            const downloadBtn = document.getElementById('imageDownloadBtn');
+            downloadBtn.href = data.download_url;
+            
+            // Show success message
+            showResults({
+                message: data.message,
+                download_links: [
+                    { url: data.download_url, label: 'Download Image QR Code' }
+                ]
+            });
+        })
+        .catch(error => {
+            hideLoading();
+            showError('An error occurred while generating the image QR code. Please try again.');
+            console.error('Error:', error);
+        });
+    });
+}
+
+function showLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay.style.display = 'none';
+}
+
+function showError(message) {
+    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+    const errorModalBody = document.getElementById('errorModalBody');
+    errorModalBody.textContent = message;
+    errorModal.show();
+}
+
+function showResults(data) {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsMessage = document.getElementById('resultsMessage');
+    const downloadLinks = document.getElementById('downloadLinks');
+    const statsInfo = document.getElementById('statsInfo');
+    
+    // Update message
+    resultsMessage.textContent = data.message || 'QR codes generated successfully!';
+    
+    // Clear previous download links
+    downloadLinks.innerHTML = '';
+    
+    // Add download links
+    if (data.download_links && data.download_links.length > 0) {
+        data.download_links.forEach(link => {
+            const btn = document.createElement('a');
+            btn.href = link.url;
+            btn.className = 'btn btn-success';
+            btn.innerHTML = `<i class="bi bi-download"></i> ${link.label}`;
+            downloadLinks.appendChild(btn);
+        });
     }
     
-    // Form validation and preview functionality
-    const qrSizeInput = document.getElementById('qr_size');
-    qrSizeInput.addEventListener('change', function() {
-        if (parseInt(this.value) < 50) {
-            this.value = 50;
-            alert('QR code size must be at least 50px for reliable scanning.');
+    // Add stats if available
+    statsInfo.innerHTML = '';
+    if (data.stats) {
+        const statsList = document.createElement('ul');
+        statsList.className = 'list-group';
+        
+        for (const [key, value] of Object.entries(data.stats)) {
+            const item = document.createElement('li');
+            item.className = 'list-group-item d-flex justify-content-between align-items-center';
+            
+            // Format the key for display (convert snake_case to Title Case)
+            const formattedKey = key
+                .split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+            
+            item.innerHTML = `
+                <span>${formattedKey}</span>
+                <span class="badge bg-primary rounded-pill">${value}</span>
+            `;
+            statsList.appendChild(item);
         }
-    });
-});
+        
+        statsInfo.appendChild(statsList);
+    }
+    
+    // Show the results section
+    resultsSection.style.display = 'block';
+    
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideResultsSection() {
+    const resultsSection = document.getElementById('resultsSection');
+    resultsSection.style.display = 'none';
+}
+
+function resetForms() {
+    // Reset all forms
+    document.getElementById('excelForm')?.reset();
+    document.getElementById('urlForm')?.reset();
+    document.getElementById('vcardForm')?.reset();
+    document.getElementById('imageForm')?.reset();
+    
+    // Reset previews
+    document.getElementById('urlPreview').innerHTML = '<img src="/static/img/url-qr-placeholder.png" class="img-fluid" alt="URL QR Code Preview">';
+    document.getElementById('vcardPreview').innerHTML = '<img src="/static/img/vcard-qr-placeholder.png" class="img-fluid" alt="vCard QR Code Preview">';
+    document.getElementById('imagePreview').innerHTML = '<img src="/static/img/image-qr-placeholder.png" class="img-fluid" alt="Image QR Code Preview">';
+    
+    // Hide download buttons
+    document.getElementById('urlDownload').style.display = 'none';
+    document.getElementById('vcardDownload').style.display = 'none';
+    document.getElementById('imageDownload').style.display = 'none';
+}
